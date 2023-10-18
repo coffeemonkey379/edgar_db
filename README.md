@@ -1,7 +1,7 @@
 # edgar_db
 Upload SEC 13-F files to searchable SQLAlchemy ORM database - only tested with PostgresSQL.
 
-Takes the files stored as zip files this SEC [webpage (https://www.sec.gov/dera/data/form-13f)] 
+Takes the files stored as zip files this SEC [webpage](https://www.sec.gov/dera/data/form-13f)
 and uploads to a searchable database.
 
 The database tables and naming convention are based on the details in 'FORM13F_readme.htm'.
