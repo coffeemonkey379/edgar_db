@@ -28,7 +28,8 @@ class CoverPageOrm(Base):
     reportcalendarorquarter: Mapped[date]
     isamendment: Mapped[Optional[str]] = mapped_column(CHAR(1))
     amendmentno: Mapped[Optional[int]] = mapped_column(Integer)
-    amendmenttype: Mapped[Optional[str]] = mapped_column()
+    amendmenttype: Mapped[Optional[str]] = mapped_column(VARCHAR(20))
+    confdeniedexpired: Mapped[Optional[str]] = mapped_column(CHAR(1))
     datedeniedexpired: Mapped[Optional[date]]
     datereported: Mapped[Optional[date]]
     reasonfornonconfidentiality: Mapped[Optional[str]] = mapped_column(VARCHAR(40))
