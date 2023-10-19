@@ -6,7 +6,7 @@ from sqlalchemy.orm import (
     MappedAsDataclass,
     Mapped,
 )
-from sqlalchemy import VARCHAR, CHAR, Integer
+from sqlalchemy import VARCHAR, CHAR, Integer, BigInteger
 
 
 class Base(MappedAsDataclass, DeclarativeBase):
@@ -42,13 +42,13 @@ class CoverPageOrm(Base):
     reporttype: Mapped[str] = mapped_column(VARCHAR(30))
     form13ffilenumber: Mapped[Optional[str]] = mapped_column(VARCHAR(17))
     provideinfoforinstruction5: Mapped[str] = mapped_column(VARCHAR(1))
-    additionalinformation: Mapped[Optional[str]] = mapped_column(VARCHAR(4000))
+    additionalinformation: Mapped[Optional[str]]
 
 
 class OtherManagerOrm(Base):
     __tablename__ = "other_manager"
     accession_number: Mapped[str] = mapped_column(VARCHAR(25), primary_key=True)
-    othermanager_sk: Mapped[int]
+    othermanager_sk: Mapped[int] = mapped_column(Integer, primary_key=True)
     cik: Mapped[Optional[str]] = mapped_column(VARCHAR(10))
     form13ffilenumber: Mapped[Optional[str]] = mapped_column(VARCHAR(17))
     name: Mapped[str] = mapped_column(VARCHAR(150))
@@ -71,14 +71,14 @@ class SummaryPageOrm(Base):
     accession_number: Mapped[str] = mapped_column(VARCHAR(25), primary_key=True)
     otherincludedmanagerscount: Mapped[Optional[int]]
     tableentrytotal: Mapped[Optional[int]]
-    tablevaluetotal: Mapped[Optional[int]]
+    tablevaluetotal: Mapped[Optional[int]] = mapped_column(BigInteger)
     isconfidentialomitted: Mapped[str] = mapped_column(CHAR(1))
 
 
 class OtherManager2Orm(Base):
     __tablename__ = "other_manager_2"
     accession_number: Mapped[str] = mapped_column(VARCHAR(25), primary_key=True)
-    sequencenumber: Mapped[int]
+    sequencenumber: Mapped[int] = mapped_column(Integer)
     cik: Mapped[Optional[str]] = mapped_column(VARCHAR(10))
     form13ffilenumber: Mapped[Optional[str]] = mapped_column(VARCHAR(17))
     name: Mapped[str] = mapped_column(VARCHAR(150))
@@ -87,7 +87,7 @@ class OtherManager2Orm(Base):
 class InfoTableOrm(Base):
     __tablename__ = "info_table"
     accession_number: Mapped[str] = mapped_column(VARCHAR(25), primary_key=True)
-    infotable_sk: Mapped[int]
+    infotable_sk: Mapped[int] = mapped_column(Integer, primary_key=True)
     nameofissuer: Mapped[str] = mapped_column(VARCHAR(200))
     titleofclass: Mapped[str] = mapped_column(VARCHAR(150))
     cusip: Mapped[str] = mapped_column(CHAR(9))
