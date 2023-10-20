@@ -92,7 +92,7 @@ class InfoTableOrm(Base):
     titleofclass: Mapped[str] = mapped_column(VARCHAR(150))
     cusip: Mapped[str] = mapped_column(CHAR(9))
     value: Mapped[int]
-    sshprnamt: Mapped[int]
+    sshprnamt: Mapped[int] = mapped_column(BigInteger)
     sshprnamttype: Mapped[str] = mapped_column(VARCHAR(10))
     putcall: Mapped[Optional[str]] = mapped_column(VARCHAR(10))
     investmentdiscretion: Mapped[str] = mapped_column(VARCHAR(10))
