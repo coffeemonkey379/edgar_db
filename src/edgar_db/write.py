@@ -1,9 +1,10 @@
-from typing import Generator, Type
+from typing import Generator, Type, Iterable
 from zipfile import ZipFile
 
 from sqlalchemy import create_engine, URL
 from sqlalchemy.orm import sessionmaker
 
+from edgar_db.logger import LOGGER
 from edgar_db.orm_parser import OrmParser
 from edgar_db.orm_db import Base
 
@@ -57,11 +58,24 @@ class BuildZipOrm:
         self.session.__exit__(exc_type, exc_value, exc_traceback)
 
     def upload(self):
+        LOGGER.info(f"Beginning upload")
         for file, orm_map in self.file_orm_map.items():
+            LOGGER.info(f"Beginning file {file}")
+            insert = 0
+            orms = []
             for orm in self._construct_orms(file, orm_map):
-                self.session.add(orm)
-            self.session.flush()
+                orms.append(orm)
+                if (insert % 500000) == 0:
+                    self._flush_instances(orms)
+                    orms = []
+            self._flush_instances(orms)
         self.session.commit()
+        LOGGER.info(f"Finished upload")
+
+    def _flush_instances(self, instances: Iterable[Base]) -> None:
+        self.session.add_all(instances)
+        self.session.flush()
+        LOGGER.info(f"Flushing...")
 
     def _construct_orms(
         self, file: str, orm_parser: OrmParser
@@ -76,7 +90,7 @@ class BuildZipOrm:
                 f"\n\nOrder of the ORM {orm_parser.orm} initialisation parameters: \n\n{orm_order}\n\n\n"
                 f"is not equal to file {file} header order: \n\n{header_order}"
             )
-        for line in file_value.readlines():
+        for line in file_value:
             decoded = self._decode_line(line)
             yield orm_parser.parse_to_orm(*decoded)
 

@@ -5,6 +5,8 @@ from io import BytesIO
 
 from sqlalchemy import URL
 
+from edgar_db.logger import LOGGER
+
 
 def build_sec_url(year: int, quarter: Literal[1, 2, 3, 4]) -> str:
     """Builds URL for SEC 13-f zip file.
@@ -36,9 +38,13 @@ def collect_url_zip(url: str) -> ZipFile:
     Returns:
         ZipFile: zip file from URL.
     """
+    LOGGER.info(f"Starting url open {url}")
     with urlopen(url) as response:
         content = response.read()
-    return ZipFile(BytesIO(content))
+    file = ZipFile(BytesIO(content))
+    LOGGER.info(f"Starting opened url zip {url}")
+    return file
+
 
 def load_engine_url(
     user: str,
@@ -46,6 +52,6 @@ def load_engine_url(
     ip: str = "localhost",
     port: Optional[int] = None,
     database: Optional[str] = None,
-    driver: str = "postgresql"
+    driver: str = "postgresql",
 ) -> URL:
     return URL.create(driver, user, password, ip, port, database)
