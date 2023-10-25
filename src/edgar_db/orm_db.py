@@ -91,12 +91,12 @@ class InfoTableOrm(Base):
     nameofissuer: Mapped[str] = mapped_column(VARCHAR(200))
     titleofclass: Mapped[str] = mapped_column(VARCHAR(150))
     cusip: Mapped[str] = mapped_column(CHAR(9))
-    value: Mapped[int]
+    value: Mapped[int] = mapped_column(BigInteger)
     sshprnamt: Mapped[int] = mapped_column(BigInteger)
     sshprnamttype: Mapped[str] = mapped_column(VARCHAR(10))
     putcall: Mapped[Optional[str]] = mapped_column(VARCHAR(10))
     investmentdiscretion: Mapped[str] = mapped_column(VARCHAR(10))
     othermanager: Mapped[Optional[str]] = mapped_column(VARCHAR(100))
-    voting_auth_sole: Mapped[int]
-    voting_auth_shared: Mapped[int]
-    voting_auth_none: Mapped[int]
+    voting_auth_sole: Mapped[int] = mapped_column(BigInteger)
+    voting_auth_shared: Mapped[int] = mapped_column(BigInteger)
+    voting_auth_none: Mapped[int] = mapped_column(BigInteger)

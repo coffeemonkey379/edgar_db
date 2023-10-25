@@ -18,6 +18,6 @@ edgar_file_parser: dict[str, Type[OrmParser]] = {
     "OTHERMANAGER.tsv": OtherManagerOrmParser,
     "SIGNATURE.tsv": SignatureParser,
     "SUMMARYPAGE.tsv": SummaryPageOrmParser,
-    # "OTHERMANAGER2.tsv": OtherManager2Parser,
+    ## "OTHERMANAGER2.tsv": OtherManager2Parser,
     "INFOTABLE.tsv": InfoTableParser,
 }

@@ -1,12 +1,12 @@
 from typing import Generator, Type, Iterable
 from zipfile import ZipFile
 
-from sqlalchemy import create_engine, URL
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import URL
+import psycopg2
 
 from edgar_db.logger import LOGGER
 from edgar_db.orm_parser import OrmParser
-from edgar_db.orm_db import Base
+from edgar_db.bulk_insert import bulk_upload
 
 
 class MissingFileError(Exception):
@@ -31,14 +31,13 @@ class BuildZipOrm:
     def __init__(
         self,
         zip_file: ZipFile,
-        file_orm_map: dict[str, Type[OrmParser]],
+        file_orm_map: dict[str, OrmParser],
         engine_str: URL,
     ):
         self.self = self
         self.zip_file = zip_file
         self.file_orm_map = file_orm_map
-        self.engine = create_engine(engine_str)
-        self.session = sessionmaker(bind=self.engine)
+        self.connection = self._build_psycopg_conn(engine_str)
 
         file_names = list(map(lambda x: x.filename, self.zip_file.infolist()))
 
@@ -48,51 +47,45 @@ class BuildZipOrm:
                 f"The following files are missing {', '.join(missing)} from zip file {file_names}"
             )
 
-    def __enter__(self):
-        self.session = self.session()
-        self.session.__enter__()
-
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.session.__exit__(exc_type, exc_value, exc_traceback)
-
     def upload(self):
-        LOGGER.info(f"Beginning upload")
         for file, orm_map in self.file_orm_map.items():
-            LOGGER.info(f"Beginning file {file}")
-            insert = 0
-            orms = []
-            for orm in self._construct_orms(file, orm_map):
-                orms.append(orm)
-                if (insert % 500000) == 0:
-                    self._flush_instances(orms)
-                    orms = []
-            self._flush_instances(orms)
-        self.session.commit()
-        LOGGER.info(f"Finished upload")
+            LOGGER.info(f"Starting upload on {file}")
+            self._upload(file, orm_map)
+            LOGGER.info(f"Finished upload on {file}")
 
-    def _flush_instances(self, instances: Iterable[Base]) -> None:
-        self.session.add_all(instances)
-        self.session.flush()
-        LOGGER.info(f"Flushing...")
+    def _insert(self, values, parser: OrmParser) -> None:
+        bulk_upload(
+            self.connection,
+            parser.orm.__tablename__,
+            map(self._decode_line, values),
+            parser,
+        )
 
-    def _construct_orms(
-        self, file: str, orm_parser: OrmParser
-    ) -> Generator[Base, None, None]:
+    def _build_psycopg_conn(self, engine_str: URL) -> psycopg2.extensions.connection:
+        kwargs = {}
+        kwargs["host"] = engine_str.host
+        kwargs["user"] = engine_str.username
+        kwargs["password"] = engine_str.password
+        kwargs["database"] = engine_str.database
+        if engine_str.port:
+            kwargs["port"] = engine_str.port
+        connection = psycopg2.connect(**kwargs)
+        connection.autocommit = True
+
+        return connection
+
+    def _upload(self, file: str, orm_parser: OrmParser) -> None:
         file_value = self.zip_file.open(file)
         headers = self._decode_line(file_value.readline(), lower=True)
-        orm_init_order = list(orm_parser.orm.__init__.__code__.co_varnames[1:-1])
-        if orm_init_order != headers:
-            orm_order = "\n".join(orm_init_order)
+        table_args_order = list(orm_parser.parse_table_args.__code__.co_varnames[1:-1])
+        if table_args_order != headers:
+            args_order = "\n".join(table_args_order)
             header_order = "\n".join(headers)
             raise OrmOrderError(
-                f"\n\nOrder of the ORM {orm_parser.orm} initialisation parameters: \n\n{orm_order}\n\n\n"
+                f"\n\nOrder of the ORM {orm_parser.orm} initialisation parameters: \n\n{args_order}\n\n\n"
                 f"is not equal to file {file} header order: \n\n{header_order}"
             )
-        for line in file_value:
-            decoded = self._decode_line(line)
-            yield orm_parser.parse_to_orm(*decoded)
+        self._insert(file_value, orm_parser)
 
     def _decode_line(self, line: bytes, lower: bool = False) -> list[str]:
         decoded = line.decode()

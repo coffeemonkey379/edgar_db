@@ -15,11 +15,12 @@ def collect_edgar(year: int, quarter: Literal[1, 2, 3, 4], engine: URL) -> None:
     try:
         zip_file = collect_url_zip(build_sec_url(year, quarter))
 
-        with BuildZipOrm(zip_file, edgar_file_parser, engine) as ZipOrm:
-            ZipOrm.upload()
+        build = BuildZipOrm(zip_file, edgar_file_parser, engine)
+        build.upload()
+        LOGGER.info(
+            f"Successfully collected for year - {year}, quarter - {quarter} to engine {engine}"
+        )
     except Exception:
-        LOGGER.exception(f"Failed to collect")
-
-    LOGGER.info(
-        f"Successfully collected for year - {year}, quarter - {quarter} to engine {engine}"
-    )
+        LOGGER.exception(
+            f"Failed to collect for year - {year}, quarter - {quarter} to engine {engine}"
+        )
