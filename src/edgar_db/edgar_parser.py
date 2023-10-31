@@ -1,23 +1,20 @@
-from typing import Type
-
-from edgar_db.orm_parser import (
-    OrmParser,
-    SubmissionOrmParser,
-    CoverPageOrmParser,
-    OtherManagerOrmParser,
+from edgar_db.parser import (
+    EdgarParser,
+    SubmissionParser,
+    CoverPageParser,
+    OtherManagerParser,
     SignatureParser,
-    SummaryPageOrmParser,
+    SummaryPageParser,
     # OtherManager2Parser,
     InfoTableParser,
 )
 
-
-edgar_file_parser: dict[str, Type[OrmParser]] = {
-    "SUBMISSION.tsv": SubmissionOrmParser,
-    "COVERPAGE.tsv": CoverPageOrmParser,
-    "OTHERMANAGER.tsv": OtherManagerOrmParser,
+edgar_file_parser: dict[str, type[EdgarParser]] = {
+    "SUBMISSION.tsv": SubmissionParser,
+    "COVERPAGE.tsv": CoverPageParser,
+    "OTHERMANAGER.tsv": OtherManagerParser,
     "SIGNATURE.tsv": SignatureParser,
-    "SUMMARYPAGE.tsv": SummaryPageOrmParser,
+    "SUMMARYPAGE.tsv": SummaryPageParser,
     ## "OTHERMANAGER2.tsv": OtherManager2Parser,
     "INFOTABLE.tsv": InfoTableParser,
 }
