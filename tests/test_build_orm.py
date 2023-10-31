@@ -3,7 +3,7 @@ import pytest
 
 from sqlalchemy import inspect, create_engine
 
-from edgar_db.build_orm import (
+from edgar_db.build_db import (
     database_exists,
     create_postgres_db,
     build_cache,
@@ -12,8 +12,6 @@ from edgar_db.build_orm import (
 from edgar_db.orm_db import Base
 
 from db_settings import (
-    engine_url,
-    engine_db_url,
     __delete_database__,
     __build_database__,
 )

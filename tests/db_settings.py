@@ -16,7 +16,7 @@ if db_credentials is None:
     )
 username, password = db_credentials.split(";")
 settings = ConfigParser()
-settings.read("settings.cfg")
+settings.read("test_settings.cfg")
 
 
 @pytest.fixture
