@@ -1,9 +1,7 @@
-from typing import Iterator, Optional, Any
+from typing import Iterator, Iterable, Callable
 import io
 
 import psycopg2
-
-from edgar_db.orm_parser import OrmParser
 
 
 class StringIteratorIO(io.TextIOBase):
@@ -14,7 +12,7 @@ class StringIteratorIO(io.TextIOBase):
     def readable(self) -> bool:
         return True
 
-    def _read1(self, n: Optional[int] = None) -> str:
+    def _read1(self, n: int | None = None) -> str:
         while not self._buff:
             try:
                 self._buff = next(self._iter)
@@ -24,7 +22,7 @@ class StringIteratorIO(io.TextIOBase):
         self._buff = self._buff[len(ret) :]
         return ret
 
-    def read(self, n: Optional[int] = None) -> str:
+    def read(self, n: int | None = None) -> str:
         line = []
         if n is None or n < 0:
             while True:
@@ -46,11 +44,12 @@ def bulk_upload(
     connection: psycopg2.extensions.connection,
     table: str,
     lines: Iterator[tuple[str]],
-    parser: OrmParser,
+    parser: Callable,
     size: int = 8192,
+    columns: Iterable[str] | None = None,
 ) -> None:
     with connection.cursor() as cursor:
         string_iterator = StringIteratorIO(
-            ("\t".join(parser.parse_table_args(*line)) + "\n" for line in lines)
+            ("\t".join(parser(*line)) + "\n" for line in lines)
         )
-        cursor.copy_from(string_iterator, table, size=size, null="")
+        cursor.copy_from(string_iterator, table, size=size, null="", columns=columns)
